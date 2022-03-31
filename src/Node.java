@@ -33,4 +33,6 @@ public class Node {
         this.children = children;
         this.fileType = "dir";
     }
+
+    //getter and setter for where the rectangle was drawn for a specific node
 }

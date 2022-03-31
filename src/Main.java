@@ -17,7 +17,7 @@ public class Main extends JFrame {
 
         //lets initialize
         contents = new Vis();
-        filePath = "/home/abigail/testdir/";
+        filePath = "/home/abigail";
         file = new File(filePath);
 
         //panel

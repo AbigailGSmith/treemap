@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.util.Random;
 
 public class Vis extends JPanel implements ActionListener, MouseInputListener {
@@ -22,45 +23,50 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
         r = new Random();
     }
 
-    public float drawNode(Graphics g, Node n, Long parentSize, float x, float y, float h, float w, String dir) {
-
+    public Point2D.Float drawNode(Graphics g, Node n, Long parentSize, Point2D.Float p, float h, float w, String dir) {
+        Point2D.Float original = new Point2D.Float(p.x,p.y);
         System.out.println("drawing " + n.path);
-        System.out.println(x);
-        System.out.println(y);
+        System.out.println(p.x);
+        System.out.println(p.y);
 
         if (n.fileType.equals("file")) {
 
             if (dir.equals("v")) {
 
                 g.setColor(new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255)));
-                int i2 = (int) (w * n.length / parentSize);
-                g.fillRect((int) x, (int) y, i2, (int) h);
-                x = x + (w * (float) n.length / (float) parentSize);
-                return x;
+                g.fillRect((int) p.x, (int) p.y,(int) w, (int) h);
+                p.x = p.x + w;
+                return p;
             } else {
 
                 g.setColor(new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255)));
-                int h2 = (int) (h * n.length / parentSize);
-                g.fillRect((int) x,(int) y,(int) w, h2 );
-                y = y + (h * (float) n.length / (float) parentSize);
-                return y;
+
+                g.fillRect((int) p.x,(int) p.y,(int) w, (int) h );
+                p.y = p.y + h;
+                return p;
             }
         } else {
 
             for (Node c : n.children) {
 
-
-                if (dir.equals("v")) {
-                    float ratio = (n.length == parentSize) ? w : w * c.length / parentSize;
-                    x = drawNode(g, c, n.length, x, y, ratio, h, "h");
+                if (dir.equals("h")) {
+                    float ratio = w * c.length / n.length;
+                    p = drawNode(g, c, n.length, p, h, ratio, "v");
                 } else {
-                    float ratio = (n.length == parentSize) ? h : h * c.length / parentSize;
-                    y = drawNode(g, c, n.length, x, y, w, ratio, "v");
+                    float ratio = h * c.length / n.length;
+                    p = drawNode(g, c, n.length, p, ratio, w, "h"); //swapped?
                 }
+
+            }
+
+            if (dir.equals("h")) {
+
+                return new Point2D.Float(original.x, original.y + h);
+            } else {
+
+                return new Point2D.Float(original.x + w, original.y);
             }
         }
-
-        return 0;
     }
 
     @Override
@@ -75,12 +81,11 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
         drawNode(g,
                 rootNode,
-                rootNode.length,
-                0,
-                0,
-                getWidth(),
+                null,
+                new Point2D.Float(0,0),
                 getHeight(),
-                "v");
+                getWidth(),
+                "h");
     }
 
     @Override
