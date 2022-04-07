@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -40,6 +39,7 @@ public class Main extends JFrame {
         contents.repaint();
     }
 
+    //changes the root node, in theory
     public void setFolder(File f) {
         nose.clear();
         contents.setRootNode(dirNode(file));
@@ -127,7 +127,6 @@ public class Main extends JFrame {
         }
 
         //load in properties of the file
-
         String type = "";
         if (file.getName().contains(".")) {
             int i = file.getName().lastIndexOf('.');
@@ -143,6 +142,7 @@ public class Main extends JFrame {
         return n;
     }
 
+    //making the menubar
     private JMenuBar createMenu() {
 
         JMenuBar mb = new JMenuBar();
@@ -199,8 +199,8 @@ public class Main extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                selectFile();
-                contents.setRootNode(dirNode(file));
+                file = selectFile();
+                setFolder(file);
                 contents.repaint();
             }
         });
@@ -214,7 +214,7 @@ public class Main extends JFrame {
         return mb;
     }
 
-    public File selectFile() {
+    public static File selectFile() {
 
         JButton open = new JButton();
         JFileChooser fc = new JFileChooser();
@@ -227,19 +227,11 @@ public class Main extends JFrame {
         }
         filePath = fc.getSelectedFile().getAbsolutePath();
         return new File(filePath);
-    }
 
-    public String setFilePath(String s) {
-
-        file = new File(s);
-        return "";
     }
 
     public static void main(String[] args) {
 
-
         javax.swing.SwingUtilities.invokeLater(Main::new);
-
-
     }
 }
