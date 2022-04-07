@@ -1,24 +1,33 @@
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import javax.swing.JFileChooser;
+import javax.swing.JButton;
 
 public class Main extends JFrame {
 
     private final Vis contents;
-    public String filePath;
-    public File file;
+    public static String filePath;
+    public static File file;
+    ArrayList<Node> nose;
 
     public Main() {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000,800);
 
+
         //lets initialize
         contents = new Vis();
-        filePath = "/home/abigail";
-        file = new File(filePath);
+        //instantiate color scheme here?
+        nose = new ArrayList<>();
+
+        file = selectFile();
 
         //panel
         setContentPane(contents);
@@ -27,13 +36,20 @@ public class Main extends JFrame {
         setJMenuBar(abigail);
         setVisible(true);
 
-        contents.setRootNode(dirNode(file));
+        setFolder(file);
         contents.repaint();
+    }
+
+    public void setFolder(File f) {
+        nose.clear();
+        contents.setRootNode(dirNode(file));
+
+        contents.setNose(nose);
+
     }
 
     //populates directory node
     public Node dirNode(File file) {
-        System.out.println(file.getAbsolutePath());
 
         int permissions = 0;
 
@@ -61,13 +77,6 @@ public class Main extends JFrame {
         String path = file.toString();
         Long length = 0l;
 
-        System.out.println(type);
-        System.out.println(mod);
-        System.out.println(permissions);
-        System.out.println(path);
-        System.out.println(length);
-
-
         ArrayList<Node> children = new ArrayList<>();
         File[] flies = file.listFiles();
         Path p = file.toPath();
@@ -94,12 +103,13 @@ public class Main extends JFrame {
             }
         }
 
-        return new Node(type, mod, permissions, path, length, children);
+        Node n = new Node(type, mod, permissions, path, length, children);
+        nose.add(n);
+        return n;
     }
 
     //populates file node
     public Node fileNode(File file) {
-        System.out.println(file.getAbsolutePath());
 
         int permissions = 0;
 
@@ -120,14 +130,17 @@ public class Main extends JFrame {
 
         String type = "";
         if (file.getName().contains(".")) {
-            System.out.println(file.getName());
             int i = file.getName().lastIndexOf('.');
             type = file.getName().substring(i);
         }
         Long mod = file.lastModified();
+        System.out.println(mod);
         String path = file.toString();
         Long length = file.length();
-        return new Node(type, mod, permissions, path, length);
+        Node n = new Node(type, mod, permissions, path, length);
+        nose.add(n);
+
+        return n;
     }
 
     private JMenuBar createMenu() {
@@ -135,16 +148,98 @@ public class Main extends JFrame {
         JMenuBar mb = new JMenuBar();
         JMenu options = new JMenu("Options");
 
-        //adding questions to the menu bar
-        //options.add(reset);
-        //mb.add(options);
 
+        JMenuItem ageScheme = new JMenuItem("Color by age"); //queries done :)
+        ageScheme.addActionListener(new ActionListener() {
 
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                contents.setColorScheme("age");
+                contents.repaint();
+            }
+        });
+
+        JMenuItem typeScheme = new JMenuItem("Color by file type"); //queries done :)
+        typeScheme.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                contents.setColorScheme("type");
+                contents.repaint();
+            }
+        });
+
+        JMenuItem randomScheme = new JMenuItem("Random colors"); //queries done :)
+        randomScheme.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                contents.setColorScheme("random");
+                contents.repaint();
+            }
+        });
+
+        JMenuItem noScheme = new JMenuItem("No colors"); //queries done :)
+        noScheme.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                contents.setColorScheme("no");
+                contents.repaint();
+            }
+        });
+
+        JMenuItem reset = new JMenuItem("Select new directory"); //queries done :)
+        reset.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                selectFile();
+                contents.setRootNode(dirNode(file));
+                contents.repaint();
+            }
+        });
+
+        options.add(ageScheme);
+        options.add(typeScheme);
+        options.add(randomScheme);
+        options.add(noScheme);
+        options.add(reset);
+        mb.add(options);
         return mb;
+    }
+
+    public File selectFile() {
+
+        JButton open = new JButton();
+        JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new java.io.File("/home/abigail"));
+        fc.setDialogTitle("Please select a directory.");
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (fc.showOpenDialog(open) == JFileChooser.APPROVE_OPTION) {
+            // a formality
+
+        }
+        filePath = fc.getSelectedFile().getAbsolutePath();
+        return new File(filePath);
+    }
+
+    public String setFilePath(String s) {
+
+        file = new File(s);
+        return "";
     }
 
     public static void main(String[] args) {
 
+
         javax.swing.SwingUtilities.invokeLater(Main::new);
+
+
     }
 }

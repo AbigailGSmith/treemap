@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Vis extends JPanel implements ActionListener, MouseInputListener {
@@ -13,10 +14,18 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
     private Point mouseDown;
     private Node rootNode;
     Random r;
+    String colorscheme;
+    Long curTime;
+    ArrayList<Node> nose;
 
     public Vis() {
 
         super();
+        nose = new ArrayList<>();
+
+
+        curTime = System.currentTimeMillis();
+        setColorScheme("age");
 
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -25,24 +34,85 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
     public Point2D.Float drawNode(Graphics g, Node n, Long parentSize, Point2D.Float p, float h, float w, String dir) {
         Point2D.Float original = new Point2D.Float(p.x,p.y);
-        System.out.println("drawing " + n.path);
-        System.out.println(p.x);
-        System.out.println(p.y);
+
+        Color m = Color.WHITE;
+        if (colorscheme.equals("type")) {
+
+            if (n.type.equals(".odt") || n.type.equals(".pdf")) { //documents
+
+                m = Color.RED;
+            } else if (n.type.equals(".ods") || n.type.equals(".xls") || n.type.equals(".xlsx")) { //spreadsheets
+
+                m = Color.ORANGE;
+            } else if (n.type.equals(".ppt") || n.type.equals(".pptx") || n.type.equals(".odp")) { //slideshows
+
+                m = Color.YELLOW;
+            } else if (n.type.equals(".txt")) { //plaintext
+
+                m = Color.GREEN;
+            } else if (n.type.equals(".exe") || n.type.equals(".bat") || n.type.equals(".com") || n.type.equals(".inf") || n.type.equals(".ipa") || n.type.equals(".osx")) { //executables
+
+                m = Color.BLUE;
+            } else if (n.type.equals(".class")) { //source code
+
+                m = Color.CYAN;
+            } else if (n.type.equals(".obj") || n.type.equals(".o")) { //object code
+
+                m = Color.MAGENTA;
+            } else if (n.type.equals(".JPG") || n.type.equals(".png") || n.type.equals(".jpeg")) { //images
+
+                m = Color.PINK;
+            } else if (n.type.equals(".mp3") || n.type.equals(".wav") || n.type.equals(".wma")) { //audio
+
+                m = Color.LIGHT_GRAY;
+            }
+        } else if (colorscheme.equals("age")) {
+
+            Long fileAge = curTime - n.mod;
+
+            if (fileAge < 3600*1000) {
+                m = Color.BLUE;
+            }
+            else if (fileAge < 86400*1000) {
+                m = Color.GREEN;
+            }
+            else if (fileAge < 604800*1000) {
+                m = Color.PINK;
+            }
+            else {
+                m = Color.WHITE;
+            }
+
+        } else if (colorscheme.equals("random")) {
+
+            int red = r.nextInt(256);
+            int green = r.nextInt(256);
+            int blue = r.nextInt(256);
+            m = new Color(red, green, blue);
+        } else {
+
+            m = Color.WHITE;
+        }
 
         if (n.fileType.equals("file")) {
 
             if (dir.equals("v")) {
 
-                g.setColor(new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255)));
+                g.setColor(m);
                 g.fillRect((int) p.x, (int) p.y,(int) w, (int) h);
+                g.setColor(Color.BLACK);
+                g.drawRect((int) p.x, (int) p.y,(int) w, (int) h);
                 p.x = p.x + w;
+                n.setCoords((int) p.x, (int) p.y,(int) w, (int) h);
                 return p;
             } else {
 
-                g.setColor(new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255)));
-
-                g.fillRect((int) p.x,(int) p.y,(int) w, (int) h );
+                g.setColor(m);
+                g.fillRect((int) p.x,(int) p.y,(int) w, (int) h);
+                g.setColor(Color.BLACK);
+                g.drawRect((int) p.x,(int) p.y,(int) w, (int) h);
                 p.y = p.y + h;
+                n.setCoords((int) p.x, (int) p.y,(int) w, (int) h);
                 return p;
             }
         } else {
@@ -98,7 +168,14 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
         int x = e.getX();
         int y = e.getY();
-        mouseDown = new Point(x,y);
+
+        for (Node n : nose) {
+
+            if (n.collides(x, y)) {
+
+                setToolTipText(n.toolTipText());
+            }
+        }
         boolean set = false;
     }
 
@@ -124,19 +201,20 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
         repaint();
     }
 
-    public void checkCollision(int x, int y) {
 
-        collision = false;
-    }
 
     //adding tool tips to each point
     @Override
     public void mouseMoved(MouseEvent e) {
 
+        for (Node n : nose) {
 
-        //repaint();
+            if (n.collides(e.getX(), e.getY())) {
 
-        //TODO draw tooltip
+                setToolTipText(n.toolTipText());
+            }
+        }
+
 
     }
 
@@ -147,5 +225,15 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
     public void setRootNode(Node n) {
         rootNode = n;
     }
+
+    public void setColorScheme(String s) {
+        colorscheme = s;
+    }
+
+    public void setNose(ArrayList<Node> n) {
+
+        nose = n;
+    }
+
 }
 
